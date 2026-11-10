@@ -1,0 +1,88 @@
+# hello-world 실행
+$ docker run --name hello-test hello-world
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+4f55086f7dd0: Pulling fs layer
+4f55086f7dd0: Download complete
+4f55086f7dd0: Pull complete
+d5e71e642bf5: Download complete
+Digest: sha256:c567b231f65614688711a75f31518a064258a51d442117a3e771a3a8fdba78ef
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+
+# ubuntu 컨테이너 실행(백그라운드 유지) 후 내부 명령 실행 (exec)
+$ docker run -d --name ubuntu-test ubuntu sleep infinity
+a87c43a0470ce83239cf4c1f848736d08a88e27eb2bd400cf647bd4cbd498dd6
+
+$ docker exec ubuntu-test ls /
+bin
+boot
+dev
+etc
+home
+lib
+lib64
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+
+$ docker exec ubuntu-test bash -c "echo Hello from ubuntu container && head -n 2 /etc/os-release"
+Hello from ubuntu container
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+NAME="Ubuntu"
+
+# 관찰 1) exec 로 띄운 프로세스가 끝나도 컨테이너는 계속 Up (메인 프로세스 sleep 이 살아 있음)
+$ docker ps --filter name=ubuntu-test
+CONTAINER ID   IMAGE     COMMAND            CREATED        STATUS                  PORTS     NAMES
+a87c43a0470c   ubuntu    "sleep infinity"   1 second ago   Up Less than a second             ubuntu-test
+
+# 관찰 2) 메인 프로세스 자체가 끝나는 컨테이너는 즉시 Exited
+$ docker run --name ubuntu-oneshot ubuntu echo "main process done"
+main process done
+
+$ docker ps -a --filter name=ubuntu-oneshot
+CONTAINER ID   IMAGE     COMMAND                   CREATED                  STATUS                              PORTS     NAMES
+f7717dfe1794   ubuntu    "echo 'main process …"   Less than a second ago   Exited (0) Less than a second ago             ubuntu-oneshot
+
+# 관찰 3) attach 는 "메인 프로세스"의 입출력에 붙음 -> 메인 프로세스가 끝나면 attach 도 끝나고 컨테이너도 종료
+$ docker run -d --name attach-test ubuntu bash -c 'for i in 1 2 3; do echo tick $i; sleep 1; done'
+7377cdb6819fd3628cdeb017c44f1ae1267a46047f033ace0c03581eac8bf881
+
+$ docker attach --no-stdin attach-test
+tick 2
+tick 3
+
+$ docker ps -a --filter name=attach-test
+CONTAINER ID   IMAGE     COMMAND                   CREATED         STATUS                              PORTS     NAMES
+7377cdb6819f   ubuntu    "bash -c 'for i in 1…"   3 seconds ago   Exited (0) Less than a second ago             attach-test
+

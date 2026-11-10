@@ -1,0 +1,5 @@
+# Windows(core.autocrlf=true)에서도 스크립트/문서는 LF 유지 -> 컨테이너 bash 에서 $'\r' 오류 방지
+*.sh  text eol=lf
+*.md  text eol=lf
+*.yml text eol=lf
+Dockerfile text eol=lf

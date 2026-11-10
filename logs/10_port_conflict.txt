@@ -1,0 +1,32 @@
+# 문제 재현: 이미 web-8080 이 쓰는 8080 에 또 매핑
+$ docker run -d -p 8080:80 --name web-conflict my-web:1.0
+37d87e65a5cc92483a846ad67b159ff0d5cf143a49511cd2a00155f356ec6036
+docker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint web-conflict (079f17acc4c3ef5a967563ec6be0cd997f965e175c9740b4aca1f11d27784a12): Bind for 0.0.0.0:8080 failed: port is already allocated
+
+Run 'docker run --help' for more information
+
+# 진단 1) 어떤 컨테이너가 8080 을 쓰는가
+$ docker ps --filter publish=8080
+CONTAINER ID   IMAGE        COMMAND                   CREATED          STATUS                    PORTS                                     NAMES
+b0d96ad4791a   my-web:1.0   "/docker-entrypoint.…"   25 seconds ago   Up 25 seconds (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+
+# 진단 2) OS 수준에서 8080 을 LISTEN 중인 프로세스
+$ if command -v ss >/dev/null; then ss -ltnp | grep ":8080"; elif command -v lsof >/dev/null; then lsof -nP -iTCP:8080 -sTCP:LISTEN; else netstat -ano | grep ":8080" | grep LISTEN; fi
+  TCP    0.0.0.0:8080           0.0.0.0:0              LISTENING       29732
+  TCP    127.0.0.1:8080         0.0.0.0:0              LISTENING       36088
+  TCP    [::]:8080              [::]:0                 LISTENING       29732
+  TCP    [::1]:8080             [::]:0                 LISTENING       36088
+
+# 조치) 실패하며 남은 컨테이너 정리 후 빈 포트(8083)로 재실행
+$ docker rm -f web-conflict
+web-conflict
+
+$ docker run -d -p 8083:80 --name web-conflict my-web:1.0
+1057fbe59dc0da66b145018de50c261d8141242ab6dbf92c428d291f84f58b4a
+
+$ curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8083
+HTTP 200
+
+$ docker rm -f web-conflict
+web-conflict
+

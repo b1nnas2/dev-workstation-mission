@@ -1,0 +1,84 @@
+# 현재 위치 / 숨김 파일 포함 목록
+$ pwd
+/c/Users/user/dev-mission-new
+
+$ ls -la
+total 63
+drwxr-xr-x 1 user 197609     0 Nov 11 04:24 .
+drwxr-xr-x 1 user 197609     0 Nov 11 04:15 ..
+-rw-r--r-- 1 user 197609    56 Nov 10 13:27 .dockerignore
+drwxr-xr-x 1 user 197609     0 Nov 11 04:15 .git
+-rw-r--r-- 1 user 197609   197 Nov 10 13:27 .gitattributes
+-rw-r--r-- 1 user 197609    37 Nov 10 13:27 .gitignore
+-rw-r--r-- 1 user 197609  1164 Nov 10 13:26 Dockerfile
+-rw-r--r-- 1 user 197609 28278 Nov 10 13:29 README.md
+-rw-r--r-- 1 user 197609   680 Nov 10 13:27 docker-compose.yml
+drwxr-xr-x 1 user 197609     0 Nov 11 04:24 images
+drwxr-xr-x 1 user 197609     0 Nov 11 04:25 logs
+drwxr-xr-x 1 user 197609     0 Nov 11 04:24 scripts
+drwxr-xr-x 1 user 197609     0 Nov 11 04:24 site
+
+# 디렉토리 생성 후 이동 (상대 경로)
+$ mkdir -p practice/sub
+
+$ cd practice
+
+$ pwd
+/c/Users/user/dev-mission-new/practice
+
+# 빈 파일 생성 / 내용 작성 / 내용 확인
+$ touch empty.txt
+
+$ echo "Linux CLI Practice" > sample.txt
+
+$ cat sample.txt
+Linux CLI Practice
+
+$ ls -la
+total 5
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 .
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 ..
+-rw-r--r-- 1 user 197609  0 Nov 11 04:25 empty.txt
+-rw-r--r-- 1 user 197609 19 Nov 11 04:25 sample.txt
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 sub
+
+# 복사 -> 이름 변경 -> 다른 폴더로 이동
+$ cp sample.txt copy.txt
+
+$ mv copy.txt renamed.txt
+
+$ mv renamed.txt sub/
+
+$ ls -la . sub
+.:
+total 5
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 .
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 ..
+-rw-r--r-- 1 user 197609  0 Nov 11 04:25 empty.txt
+-rw-r--r-- 1 user 197609 19 Nov 11 04:25 sample.txt
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 sub
+
+sub:
+total 1
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 .
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 ..
+-rw-r--r-- 1 user 197609 19 Nov 11 04:25 renamed.txt
+
+# 삭제 (파일 -> 빈 디렉토리)
+$ rm sub/renamed.txt
+
+$ rmdir sub
+
+$ ls -la
+total 5
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 .
+drwxr-xr-x 1 user 197609  0 Nov 11 04:25 ..
+-rw-r--r-- 1 user 197609  0 Nov 11 04:25 empty.txt
+-rw-r--r-- 1 user 197609 19 Nov 11 04:25 sample.txt
+
+# 절대 경로로 저장소 루트 복귀
+$ cd "/c/Users/user/dev-mission-new"
+
+$ pwd
+/c/Users/user/dev-mission-new
+

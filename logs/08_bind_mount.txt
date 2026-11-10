@@ -1,0 +1,23 @@
+# 호스트 폴더 bind-site/ 를 nginx 웹 루트에 직접 연결 (절대 경로 필요 -> $(pwd) 사용)
+$ echo "<h1>bind mount v1 (before)</h1>" > bind-site/index.html
+
+$ docker run -d -p 8081:80 -v "C:/Users/user/dev-mission-new/bind-site:/usr/share/nginx/html" --name web-bind nginx:alpine
+249dde7ca981939b3e3e96d979116ed276c08970907135f5f713060daedbdc4e
+
+# [변경 전]
+$ curl -s http://localhost:8081
+<h1>bind mount v1 (before)</h1>
+
+# 호스트에서 파일만 수정 (이미지 재빌드 / 컨테이너 재시작 없음)
+$ echo "<h1>bind mount v2 (after) - edited on host</h1>" > bind-site/index.html
+
+# [변경 후] -> 즉시 반영
+$ curl -s http://localhost:8081
+<h1>bind mount v2 (after) - edited on host</h1>
+
+$ docker exec web-bind cat /usr/share/nginx/html/index.html
+<h1>bind mount v2 (after) - edited on host</h1>
+
+$ docker inspect --format '{{range .Mounts}}{{.Type}}: {{.Source}} -> {{.Destination}}{{end}}' web-bind
+bind: C:/Users/user/dev-mission-new/bind-site -> /usr/share/nginx/html
+

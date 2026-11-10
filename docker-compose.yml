@@ -1,0 +1,15 @@
+# 보너스: 웹 서버 + 보조 서비스(checker) 2개를 Compose로 함께 실행
+services:
+  web:
+    build: .
+    image: my-web:1.0
+    ports:
+      - "${WEB_PORT:-8090}:80"        # 환경 변수로 호스트 포트 변경 가능 (WEB_PORT=9000 docker compose up)
+    environment:
+      - APP_ENV=${APP_ENV:-dev}       # Dockerfile 의 ENV(production)를 실행 시점에 덮어씀
+
+  checker:                            # 같은 네트워크에서 서비스 이름 "web" 으로 접속하는 보조 컨테이너
+    image: busybox
+    depends_on:
+      - web
+    command: ["sh", "-c", "sleep 3; while true; do wget -qO- http://web/ | head -n 8; echo '---'; sleep 10; done"]

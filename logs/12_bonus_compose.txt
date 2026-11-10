@@ -1,0 +1,120 @@
+$ docker compose version
+Docker Compose version v5.6.1
+
+$ cat docker-compose.yml
+# 보너스: 웹 서버 + 보조 서비스(checker) 2개를 Compose로 함께 실행
+services:
+  web:
+    build: .
+    image: my-web:1.0
+    ports:
+      - "${WEB_PORT:-8090}:80"        # 환경 변수로 호스트 포트 변경 가능 (WEB_PORT=9000 docker compose up)
+    environment:
+      - APP_ENV=${APP_ENV:-dev}       # Dockerfile 의 ENV(production)를 실행 시점에 덮어씀
+
+  checker:                            # 같은 네트워크에서 서비스 이름 "web" 으로 접속하는 보조 컨테이너
+    image: busybox
+    depends_on:
+      - web
+    command: ["sh", "-c", "sleep 3; while true; do wget -qO- http://web/ | head -n 8; echo '---'; sleep 10; done"]
+
+$ docker compose up -d --build
+ Image busybox Pulling 
+ 37bb94b0940b Pulling fs layer 0B
+ 37bb94b0940b Downloading 1.049MB
+ 37bb94b0940b Download complete 0B
+ 46500c34ad0c Download complete 0B
+ 37bb94b0940b Pull complete 0B
+ Image busybox Pulled 
+ Image my-web:1.0 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 512B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.20kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/nginx:alpine
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 96B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 61B done
+#5 DONE 0.0s
+
+#6 [1/2] FROM docker.io/library/nginx:alpine@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
+#6 resolve docker.io/library/nginx:alpine@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11 0.0s done
+#6 DONE 0.0s
+
+#7 [2/2] COPY site/ /usr/share/nginx/html/
+#7 DONE 0.0s
+
+#8 exporting to image
+#8 exporting layers 0.1s done
+#8 exporting manifest sha256:0d836130f26e29fe29147d2f1b7aa52ba567b24a7ae7f13fd2b4c2f7597c3483 0.0s done
+#8 exporting config sha256:4e4dfdad83e8c6bb2e9dd791d9a692611f8f2dd29995dfa7c8867c454ee2d982 0.0s done
+#8 exporting attestation manifest sha256:8b8af64eb7d8f8dab999a03ce84a8cb2ba43b9d66cc069ba380f398358a2aa44 0.0s done
+#8 exporting manifest list sha256:ac2d4cc751652184207f500024d146fc37ed1687e29fe9ecde15e3bfec068c60
+#8 exporting manifest list sha256:ac2d4cc751652184207f500024d146fc37ed1687e29fe9ecde15e3bfec068c60 0.0s done
+#8 naming to docker.io/library/my-web:1.0 done
+#8 unpacking to docker.io/library/my-web:1.0 done
+#8 DONE 0.1s
+
+#9 resolving provenance for metadata file
+#9 DONE 0.0s
+ Image my-web:1.0 Built 
+ Network dev-mission-new_default Creating 
+ Network dev-mission-new_default Creating 
+ Network dev-mission-new_default Created 
+ Network dev-mission-new_default Created 
+ Container dev-mission-new-web-1 Creating 
+ Container dev-mission-new-web-1 Created 
+ Container dev-mission-new-checker-1 Creating 
+ Container dev-mission-new-checker-1 Created 
+ Container dev-mission-new-web-1 Starting 
+ Container dev-mission-new-web-1 Started 
+ Container dev-mission-new-checker-1 Starting 
+ Container dev-mission-new-checker-1 Started 
+
+$ docker compose ps
+NAME                        IMAGE        COMMAND                   SERVICE   CREATED         STATUS                   PORTS
+dev-mission-new-checker-1   busybox      "sh -c 'sleep 3; whi…"   checker   8 seconds ago   Up 8 seconds             
+dev-mission-new-web-1       my-web:1.0   "/docker-entrypoint.…"   web       8 seconds ago   Up 8 seconds (healthy)   0.0.0.0:8090->80/tcp, [::]:8090->80/tcp
+
+# checker 컨테이너가 서비스 이름 "web" 으로 접속 (Compose 기본 네트워크의 DNS)
+$ docker compose logs --tail 5 checker
+checker-1  |   <title>Workstation</title>
+checker-1  | </head>
+checker-1  | <body>
+checker-1  |   <h1>Hello from my-web:1.0</h1>
+checker-1  | ---
+
+$ curl -s http://localhost:8090
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Workstation</title>
+</head>
+<body>
+  <h1>Hello from my-web:1.0</h1>
+  <p>Dockerfile(nginx:alpine)로 만든 커스텀 이미지에서 응답한 페이지입니다.</p>
+</body>
+</html>
+
+$ docker compose down
+ Container dev-mission-new-checker-1 Stopping 
+ Container dev-mission-new-checker-1 Stopped 
+ Container dev-mission-new-checker-1 Removing 
+ Container dev-mission-new-checker-1 Removed 
+ Container dev-mission-new-web-1 Stopping 
+ Container dev-mission-new-web-1 Stopped 
+ Container dev-mission-new-web-1 Removing 
+ Container dev-mission-new-web-1 Removed 
+ Network dev-mission-new_default Removing 
+ Network dev-mission-new_default Removed 
+

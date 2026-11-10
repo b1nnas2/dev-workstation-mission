@@ -1,0 +1,64 @@
+$ cat Dockerfile
+# ------------------------------------------------------------
+# 베이스: 공식 nginx:alpine 이미지 (기존 이미지 기반 커스텀 - 방식 A)
+# ------------------------------------------------------------
+FROM nginx:alpine
+
+# [커스텀 1] 메타데이터: 이미지 이름/작성자 식별 (docker image inspect 로 확인 가능)
+LABEL org.opencontainers.image.title="my-custom-nginx" \
+      maintainer="b1nnas2"
+
+# [커스텀 2] 환경변수: 실행 모드를 이미지에 기록 (코드와 설정 분리 연습)
+ENV APP_ENV=production
+
+# [커스텀 3] 정적 콘텐츠 교체: nginx 기본 페이지 -> 내 site/ 폴더
+#   - site/ 는 "빌드 컨텍스트(.) 기준 상대 경로", 목적지는 "컨테이너 절대 경로"
+COPY site/ /usr/share/nginx/html/
+
+# [커스텀 4] 헬스체크: 컨테이너가 실제로 응답하는지 Docker가 주기적으로 검사
+HEALTHCHECK --interval=5s --timeout=3s --start-period=3s --retries=3 \
+  CMD wget -q -O /dev/null http://localhost/ || exit 1
+
+# 컨테이너 내부에서 nginx가 듣는 포트 (문서화 목적, 실제 공개는 docker run -p 로 함)
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+
+$ docker build --progress=plain -t my-web:1.0 .
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.20kB 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/nginx:alpine
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 96B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 330B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/nginx:alpine@sha256:b2f80f8f88146b0772fdcc7d92cea621aa8c2889fa8d07ed61d4884fcea53e09
+#5 resolve docker.io/library/nginx:alpine@sha256:b2f80f8f88146b0772fdcc7d92cea621aa8c2889fa8d07ed61d4884fcea53e09 0.0s done
+#5 CACHED
+
+#6 [2/2] COPY site/ /usr/share/nginx/html/
+#6 DONE 0.0s
+
+#7 exporting to image
+#7 exporting layers 0.1s done
+#7 exporting manifest sha256:e5828ceb2066baa56395434c00f800d4264b93a2c0132a59cada8b3c39972353 0.0s done
+#7 exporting config sha256:b2f75322e0168c6d60ef68f0da9a1eb28fdc065e1a0df0fdb79374150422b4e9 0.0s done
+#7 exporting attestation manifest sha256:ab08078d68c9c424305d7442e89f47fecb6037fb38e16272b5676594aa9637ac 0.0s done
+#7 exporting manifest list sha256:b54e6f7b302e0459efb7ebb91448f8f258c466634476a7faa4f00786b141da77 0.0s done
+#7 naming to docker.io/library/my-web:1.0 done
+#7 unpacking to docker.io/library/my-web:1.0 0.0s done
+#7 DONE 0.2s
+
+$ docker image inspect my-web:1.0 --format 'Labels={{json .Config.Labels}}  Env={{json .Config.Env}}  ExposedPorts={{json .Config.ExposedPorts}}'
+Labels={"maintainer":"b1nnas2","org.opencontainers.image.title":"my-custom-nginx"}  Env=["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","NGINX_VERSION=1.31.8","PKG_RELEASE=1","DYNPKG_RELEASE=1","NJS_VERSION=1.0.2","NJS_RELEASE=1","ACME_VERSION=0.4.1","APP_ENV=production"]  ExposedPorts={"80/tcp":{}}
+

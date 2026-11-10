@@ -1,0 +1,62 @@
+# 같은 이미지로 컨테이너 2개를 서로 다른 호스트 포트에 매핑 (8080, 8082 -> 컨테이너 80)
+$ docker run -d -p 8080:80 --name web-8080 my-web:1.0
+b0d96ad4791a876695b41603a24117f9488edc3648d1d96464953bf6e0e136f4
+
+$ docker run -d -p 8082:80 --name web-8082 my-web:1.0
+a929d509cb164188ff0fc43dd94365fe9793192c0a911d2e68b683de89b4568d
+
+$ docker ps --filter name=web-80
+CONTAINER ID   IMAGE        COMMAND                   CREATED         STATUS                   PORTS                                     NAMES
+a929d509cb16   my-web:1.0   "/docker-entrypoint.…"   3 seconds ago   Up 3 seconds (healthy)   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   web-8082
+b0d96ad4791a   my-web:1.0   "/docker-entrypoint.…"   3 seconds ago   Up 3 seconds (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+
+$ docker port web-8080
+80/tcp -> 0.0.0.0:8080
+80/tcp -> [::]:8080
+
+$ curl -s -i http://localhost:8080
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Date: Tue, 10 Nov 2026 19:25:49 GMT
+Content-Type: text/html
+Content-Length: 258
+Last-Modified: Tue, 10 Nov 2026 04:26:16 GMT
+Connection: keep-alive
+ETag: "6af29ce8-102"
+Accept-Ranges: bytes
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Workstation</title>
+</head>
+<body>
+  <h1>Hello from my-web:1.0</h1>
+  <p>Dockerfile(nginx:alpine)로 만든 커스텀 이미지에서 응답한 페이지입니다.</p>
+</body>
+</html>
+
+$ curl -s -i http://localhost:8082
+HTTP/1.1 200 OK
+Server: nginx/1.31.8
+Date: Tue, 10 Nov 2026 19:25:49 GMT
+Content-Type: text/html
+Content-Length: 258
+Last-Modified: Tue, 10 Nov 2026 04:26:16 GMT
+Connection: keep-alive
+ETag: "6af29ce8-102"
+Accept-Ranges: bytes
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Workstation</title>
+</head>
+<body>
+  <h1>Hello from my-web:1.0</h1>
+  <p>Dockerfile(nginx:alpine)로 만든 커스텀 이미지에서 응답한 페이지입니다.</p>
+</body>
+</html>
+

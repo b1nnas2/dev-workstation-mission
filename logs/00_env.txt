@@ -1,0 +1,15 @@
+$ uname -a
+MINGW64_NT-10.0-26200 DESKTOP-7N7HD8T 3.6.10-5a1665c8.x86_64 2026-09-28 10:40 UTC x86_64 Msys
+
+$ echo "SHELL=$SHELL"
+SHELL=/usr/bin/bash
+
+$ bash --version | head -n 1
+GNU bash, version 5.3.15(2)-release (x86_64-pc-cygwin)
+
+$ docker --version
+Docker version 29.9.2, build a82e528
+
+$ git --version
+git version 2.56.0.windows.4
+

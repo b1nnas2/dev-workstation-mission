@@ -1,0 +1,62 @@
+# 1) 볼륨 생성
+$ docker volume create mydata
+mydata
+
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     my-vol
+local     mydata
+
+$ docker volume inspect mydata
+[
+    {
+        "CreatedAt": "2026-11-10T19:26:05Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/mydata/_data",
+        "Name": "mydata",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+# 2) 첫 번째 컨테이너에 연결하고 데이터 쓰기
+$ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity
+75006d83acf0119acdc96163c9dc0112b7b23381037f73ba3e52abc981b21607
+
+$ docker exec vol-test bash -c 'echo hi-volume > /data/hello.txt && cat /data/hello.txt'
+hi-volume
+
+# 3) 컨테이너 삭제 (삭제 전/후 목록)
+$ docker ps -a --filter name=vol-test
+CONTAINER ID   IMAGE     COMMAND            CREATED        STATUS                  PORTS     NAMES
+75006d83acf0   ubuntu    "sleep infinity"   1 second ago   Up Less than a second             vol-test
+
+$ docker rm -f vol-test
+vol-test
+
+$ docker ps -a --filter name=vol-test
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+# 4) 새 컨테이너에 같은 볼륨 연결 -> 데이터 유지 확인
+$ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity
+be210288f8684d3b816fca5b7110982d3e784dbdb95111443aff37da4081410d
+
+$ docker exec vol-test2 cat /data/hello.txt
+hi-volume
+
+# 5) 데이터 손실 대비: 볼륨 백업(tar) -> 새 볼륨으로 복구
+$ docker run --rm -v mydata:/data -v "C:/Users/user/dev-mission-new/backup:/backup" ubuntu tar czf /backup/mydata.tgz -C /data .
+
+$ ls -l backup
+total 1
+-rw-r--r-- 1 user 197609 159 Nov 11 04:26 mydata.tgz
+
+$ docker volume create mydata-restore
+mydata-restore
+
+$ docker run --rm -v mydata-restore:/data -v "C:/Users/user/dev-mission-new/backup:/backup" ubuntu tar xzf /backup/mydata.tgz -C /data
+
+$ docker run --rm -v mydata-restore:/data ubuntu cat /data/hello.txt
+hi-volume
+

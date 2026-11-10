@@ -1,0 +1,67 @@
+$ docker pull nginx:alpine
+alpine: Pulling from library/nginx
+Digest: sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
+Status: Downloaded newer image for nginx:alpine
+docker.io/library/nginx:alpine
+
+$ docker images
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   c567b231f656       25.9kB         9.49kB   U    
+my-web:1.0           b54e6f7b302e       93.7MB         26.4MB   U    
+nginx:alpine         713fc2ebfd92       94.5MB         27.3MB   U    
+ubuntu:latest        6a06111c3b0a        163MB         45.9MB   U    
+
+$ docker ps
+CONTAINER ID   IMAGE        COMMAND                   CREATED          STATUS                   PORTS                                     NAMES
+a929d509cb16   my-web:1.0   "/docker-entrypoint.…"   6 seconds ago    Up 6 seconds (healthy)   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   web-8082
+b0d96ad4791a   my-web:1.0   "/docker-entrypoint.…"   6 seconds ago    Up 6 seconds (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+a87c43a0470c   ubuntu       "sleep infinity"          13 seconds ago   Up 13 seconds                                                      ubuntu-test
+
+$ docker ps -a
+CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS                      PORTS                                     NAMES
+a929d509cb16   my-web:1.0     "/docker-entrypoint.…"   7 seconds ago    Up 6 seconds (healthy)      0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   web-8082
+b0d96ad4791a   my-web:1.0     "/docker-entrypoint.…"   7 seconds ago    Up 7 seconds (healthy)      0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-8080
+7377cdb6819f   ubuntu         "bash -c 'for i in 1…"   12 seconds ago   Exited (0) 8 seconds ago                                              attach-test
+f7717dfe1794   ubuntu         "echo 'main process …"   13 seconds ago   Exited (0) 12 seconds ago                                             ubuntu-oneshot
+a87c43a0470c   ubuntu         "sleep infinity"          14 seconds ago   Up 13 seconds                                                         ubuntu-test
+f5d05143a70b   hello-world    "/hello"                  15 seconds ago   Exited (0) 14 seconds ago                                             hello-test
+17087004e01f   ubuntu         "sleep infinity"          4 days ago       Exited (255) 7 hours ago                                              box2
+2466e0999a27   b2f80f8f8814   "/docker-entrypoint.…"   4 days ago       Exited (255) 7 hours ago    0.0.0.0:8081->80/tcp                      web-mount
+
+# 컨테이너 중지 / 재시작
+$ docker stop web-8082
+web-8082
+
+$ docker ps -a --filter name=web-8082
+CONTAINER ID   IMAGE        COMMAND                   CREATED         STATUS                              PORTS     NAMES
+a929d509cb16   my-web:1.0   "/docker-entrypoint.…"   7 seconds ago   Exited (0) Less than a second ago             web-8082
+
+$ docker start web-8082
+web-8082
+
+$ docker ps --filter name=web-8082
+CONTAINER ID   IMAGE        COMMAND                   CREATED         STATUS                                     PORTS                                     NAMES
+a929d509cb16   my-web:1.0   "/docker-entrypoint.…"   8 seconds ago   Up Less than a second (health: starting)   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   web-8082
+
+# 로그 / 리소스 / 헬스체크 상태
+$ docker logs --tail 10 web-8080
+2026/11/10 19:25:45 [notice] 1#1: start worker process 35
+2026/11/10 19:25:45 [notice] 1#1: start worker process 36
+2026/11/10 19:25:45 [notice] 1#1: start worker process 37
+2026/11/10 19:25:45 [notice] 1#1: start worker process 38
+2026/11/10 19:25:45 [notice] 1#1: start worker process 39
+2026/11/10 19:25:45 [notice] 1#1: start worker process 40
+2026/11/10 19:25:45 [notice] 1#1: start worker process 41
+::1 - - [10/Nov/2026:19:25:48 +0000] "GET / HTTP/1.1" 200 258 "-" "Wget" "-"
+172.17.0.1 - - [10/Nov/2026:19:25:49 +0000] "GET / HTTP/1.1" 200 258 "-" "curl/8.23.0" "-"
+::1 - - [10/Nov/2026:19:25:53 +0000] "GET / HTTP/1.1" 200 258 "-" "Wget" "-"
+
+$ docker stats --no-stream
+CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+a929d509cb16   web-8082      0.00%     12.09MiB / 7.565GiB   0.16%     782B / 126B       0B / 0B           13
+b0d96ad4791a   web-8080      0.00%     17.96MiB / 7.565GiB   0.23%     1.76kB / 1.04kB   10.4MB / 12.3kB   13
+a87c43a0470c   ubuntu-test   0.00%     1.637MiB / 7.565GiB   0.02%     1.8kB / 126B      12.3kB / 0B       1
+
+$ docker inspect --format '{{.Name}} health={{.State.Health.Status}}' web-8080
+/web-8080 health=healthy
+

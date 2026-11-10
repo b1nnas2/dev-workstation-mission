@@ -1,0 +1,36 @@
+# [A] 호스트(Windows Git Bash, NTFS)에서 시도 -> 권한 비트가 바뀌지 않음 (트러블슈팅 #2)
+#     macOS/Linux 호스트에서는 정상적으로 바뀜
+$ touch practice/perm_host.txt && ls -l practice/perm_host.txt
+-rw-r--r-- 1 user 197609 0 Nov 11 04:25 practice/perm_host.txt
+
+$ chmod 755 practice/perm_host.txt && ls -l practice/perm_host.txt
+-rw-r--r-- 1 user 197609 0 Nov 11 04:25 practice/perm_host.txt
+
+# [B] Linux(ubuntu) 컨테이너 안에서 파일 1개 + 디렉토리 1개 권한 변경 실험
+$ tr -d "\r" < scripts/perm_lab.sh | docker run --rm -i ubuntu bash
+$ cd /tmp
+$ touch perm_file.txt
+$ chmod 644 perm_file.txt
+$ ls -l perm_file.txt
+-rw-r--r-- 1 root root 0 Nov 10 19:25 perm_file.txt
+$ chmod 755 perm_file.txt
+$ ls -l perm_file.txt
+-rwxr-xr-x 1 root root 0 Nov 10 19:25 perm_file.txt
+$ chmod u=rw,g=r,o= perm_file.txt
+$ ls -l perm_file.txt
+-rw-r----- 1 root root 0 Nov 10 19:25 perm_file.txt
+$ stat -c '%a %A %n' perm_file.txt
+640 -rw-r----- perm_file.txt
+$ mkdir perm_dir
+$ chmod 755 perm_dir
+$ ls -ld perm_dir
+drwxr-xr-x 2 root root 4096 Nov 10 19:25 perm_dir
+$ chmod 700 perm_dir
+$ ls -ld perm_dir
+drwx------ 2 root root 4096 Nov 10 19:25 perm_dir
+$ stat -c '%a %A %n' perm_dir
+700 drwx------ perm_dir
+$ su -s /bin/bash nobody -c 'ls /tmp/perm_dir'
+ls: cannot open directory '/tmp/perm_dir': Permission denied
+$ true
+
