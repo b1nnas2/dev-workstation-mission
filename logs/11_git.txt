@@ -39,7 +39,8 @@ origin	https://github.com/b1nnas2/dev-workstation-mission.git (fetch)
 origin	https://github.com/b1nnas2/dev-workstation-mission.git (push)
 
 $ git log --oneline --decorate -n 5
-b12f797 (HEAD -> main, origin/main, origin/HEAD) docs: 개발 워크스테이션 미션 산출물 (README·실행 로그·증거)
+5a2775e (HEAD -> main) docs: push 증거 갱신
+b12f797 (origin/main, origin/HEAD) docs: 개발 워크스테이션 미션 산출물 (README·실행 로그·증거)
 
 # 원격(GitHub) main 의 커밋 해시 = 로컬 push 결과
 $ git ls-remote origin main
