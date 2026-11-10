@@ -965,8 +965,6 @@ core.symlinks=false
 core.ignorecase=true
 remote.origin.url=https://github.com/b1nnas2/dev-workstation-mission.git
 remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
-branch.main.remote=origin
-branch.main.merge=refs/heads/main
 
 $ git config --global init.defaultBranch
 main
@@ -979,15 +977,14 @@ origin	https://github.com/b1nnas2/dev-workstation-mission.git (fetch)
 origin	https://github.com/b1nnas2/dev-workstation-mission.git (push)
 
 $ git log --oneline --decorate -n 5
-374cd6b (HEAD -> main, origin/main, origin/HEAD) docs: README 및 실행 중거 점년 보완
-7cce430 docs: 개발 워크스테이션 미션 산출물 제출
+b12f797 (HEAD -> main, origin/main, origin/HEAD) docs: 개발 워크스테이션 미션 산출물 (README·실행 로그·증거)
 
 # 원격(GitHub) main 의 커밋 해시 = 로컬 push 결과
 $ git ls-remote origin main
-374cd6b244c43aa05a08f5e804ffc530c0c243ef	refs/heads/main
+b12f797c55aff9fbc67e3b7752c7a54a373fb4d6	refs/heads/main
 
 $ git status -sb
-## main...origin/main
+## main
  M logs/11_git.txt
 
 ```
